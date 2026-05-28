@@ -1,4 +1,4 @@
-1. 6 things a neurologist does to keep his brain healthy - The Washington Post
+py -m pip install django djangorestframework requestspy -m pip install django djangorestframework requests1. 6 things a neurologist does to keep his brain healthy - The Washington Post
 2. Ebola in DR Congo: Fast response needed to stop 'catastrophe', DR Congo governor sayss - BBC
 3. Exclusive | Lilly Agrees to Buys Trio of Vaccine Developers - WSJ
 4. U.S. renews strikes on Iran, citing threats posed to American troops - The Washington Post
