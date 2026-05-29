@@ -3,25 +3,86 @@ import axios from "axios";
 import "./App.css";
 
 function App() {
+
   const [news, setNews] = useState([]);
   const [topic, setTopic] = useState("technology");
+  const [darkMode, setDarkMode] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const fetchNews = (searchTopic) => {
+  const [favorites, setFavorites] = useState(
+    JSON.parse(localStorage.getItem("favorites")) || []
+  );
+
+  const [page, setPage] = useState(1);
+
+  // ---------------- FETCH NEWS ----------------
+  const fetchNews = (searchTopic, pageNumber = 1) => {
+
+    setLoading(true);
+
     axios
-      .get(`http://127.0.0.1:8000/api/news/?topic=${searchTopic}`)
-      .then((res) => setNews(res.data))
-      .catch((err) => console.log(err));
+      .get(
+        `http://127.0.0.1:8000/api/news/?topic=${searchTopic}&page=${pageNumber}`
+      )
+      .then((res) => {
+        setNews(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setLoading(false);
+      });
   };
 
+  // ---------------- FAVORITES ----------------
+  const addToFavorites = (article) => {
+
+    const exists = favorites.find((f) => f.url === article.url);
+    if (exists) return;
+
+    const updatedFavorites = [...favorites, article];
+
+    setFavorites(updatedFavorites);
+
+    localStorage.setItem(
+      "favorites",
+      JSON.stringify(updatedFavorites)
+    );
+  };
+
+  // ---------------- FIRST LOAD ----------------
   useEffect(() => {
-    fetchNews(topic);
-  }, []);
+    fetchNews(topic, page);
+  }, [page]);
+
+  // ---------------- CATEGORIES ----------------
+  const categories = [
+    "technology",
+    "sports",
+    "business",
+    "health",
+    "science",
+    "bitcoin"
+  ];
 
   return (
-    <div className="app">
+    <div className={darkMode ? "app dark" : "app"}>
 
-      <h1 className="title">📰 News App</h1>
+      {/* TOP BAR */}
+      <div className="top-bar">
+        <p>❤️ Favorites: {favorites.length}</p>
 
+        <h1>📰 News App</h1>
+
+        <button
+          className="dark-btn"
+          onClick={() => setDarkMode(!darkMode)}
+        >
+          {darkMode ? "☀ Light" : "🌙 Dark"}
+        </button>
+      </div>
+
+      {/* SEARCH */}
       <div className="search-box">
         <input
           value={topic}
@@ -29,42 +90,84 @@ function App() {
           placeholder="Search topic..."
         />
 
-        <button onClick={() => fetchNews(topic)}>
+        <button
+          onClick={() => {
+            setPage(1);
+            fetchNews(topic, 1);
+          }}
+        >
           Search
         </button>
       </div>
 
-      <div className="news-container">
-
-        {news.map((item, index) => (
-          <div className="card" key={index}>
-
-            {item.urlToImage && (
-              <img
-                src={item.urlToImage}
-                alt=""
-              />
-            )}
-
-            <div className="card-content">
-
-              <h2>{item.title}</h2>
-
-              <p>{item.description}</p>
-
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Read More
-              </a>
-
-            </div>
-
-          </div>
+      {/* CATEGORIES */}
+      <div className="categories">
+        {categories.map((cat, index) => (
+          <button
+            key={index}
+            onClick={() => {
+              setTopic(cat);
+              setPage(1);
+              fetchNews(cat, 1);
+            }}
+          >
+            {cat}
+          </button>
         ))}
+      </div>
 
+      {/* CONTENT */}
+      {loading ? (
+        <h2 className="loading">Loading news...</h2>
+      ) : (
+        <div className="news-container">
+
+          {news.map((item, index) => (
+            <div className="card" key={index}>
+
+              {item.urlToImage && (
+                <img src={item.urlToImage} alt="" />
+              )}
+
+              <div className="card-content">
+                <h2>{item.title}</h2>
+                <p>{item.description}</p>
+
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Read More
+                </a>
+
+                <button
+                  className="fav-btn"
+                  onClick={() => addToFavorites(item)}
+                >
+                  ❤️ Save
+                </button>
+              </div>
+            </div>
+          ))}
+
+        </div>
+      )}
+
+      {/* PAGINATION */}
+      <div className="pagination">
+        <button
+          onClick={() => setPage(page - 1)}
+          disabled={page === 1}
+        >
+          Previous
+        </button>
+
+        <span> Page {page} </span>
+
+        <button onClick={() => setPage(page + 1)}>
+          Next
+        </button>
       </div>
 
     </div>
