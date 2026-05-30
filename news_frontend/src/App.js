@@ -20,6 +20,8 @@ function App() {
 
     setLoading(true);
 
+    
+
     axios
       .get(
         `http://127.0.0.1:8000/api/news/?topic=${searchTopic}&page=${pageNumber}`
