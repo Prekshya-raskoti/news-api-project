@@ -16,16 +16,12 @@ function App() {
   const [page, setPage] = useState(1);
 
   // ---------------- FETCH NEWS ----------------
-  const fetchNews = (searchTopic, pageNumber = 1) => {
+  const fetchNews = (searchTopic) => {
 
     setLoading(true);
 
-    
-
     axios
-      .get(
-        `http://127.0.0.1:8000/api/news/?topic=${searchTopic}&page=${pageNumber}`
-      )
+      .get(`http://127.0.0.1:8000/api/news/?topic=${searchTopic}`)
       .then((res) => {
         setNews(res.data);
         setLoading(false);
@@ -52,10 +48,20 @@ function App() {
     );
   };
 
-  // ---------------- FIRST LOAD ----------------
+  // ---------------- LOAD NEWS ON START ----------------
   useEffect(() => {
-    fetchNews(topic, page);
-  }, [page]);
+    fetchNews(topic);
+  }, []);
+
+  // ---------------- PAGINATION LOGIC ----------------
+  const articlesPerPage = 6;
+
+  const startIndex = (page - 1) * articlesPerPage;
+  const endIndex = startIndex + articlesPerPage;
+
+  const displayedNews = news.slice(startIndex, endIndex);
+
+  const totalPages = Math.ceil(news.length / articlesPerPage);
 
   // ---------------- CATEGORIES ----------------
   const categories = [
@@ -95,7 +101,7 @@ function App() {
         <button
           onClick={() => {
             setPage(1);
-            fetchNews(topic, 1);
+            fetchNews(topic);
           }}
         >
           Search
@@ -110,7 +116,7 @@ function App() {
             onClick={() => {
               setTopic(cat);
               setPage(1);
-              fetchNews(cat, 1);
+              fetchNews(cat);
             }}
           >
             {cat}
@@ -124,7 +130,7 @@ function App() {
       ) : (
         <div className="news-container">
 
-          {news.map((item, index) => (
+          {displayedNews.map((item, index) => (
             <div className="card" key={index}>
 
               {item.urlToImage && (
@@ -158,18 +164,25 @@ function App() {
 
       {/* PAGINATION */}
       <div className="pagination">
+
         <button
-          onClick={() => setPage(page - 1)}
           disabled={page === 1}
+          onClick={() => setPage(page - 1)}
         >
           Previous
         </button>
 
-        <span> Page {page} </span>
+        <span>
+          Page {page} of {totalPages}
+        </span>
 
-        <button onClick={() => setPage(page + 1)}>
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+        >
           Next
         </button>
+
       </div>
 
     </div>
